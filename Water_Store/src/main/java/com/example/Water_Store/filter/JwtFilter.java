@@ -1,5 +1,6 @@
 package com.example.Water_Store.filter;
 
+
 import com.example.Water_Store.entity.User;
 import com.example.Water_Store.repository.UserRepository;
 import com.example.Water_Store.utils.JwtUtil;
@@ -21,12 +22,25 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
+
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-            throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain chain) throws ServletException, IOException {
+
+        String path = request.getRequestURI();
+
+        // 🚫 Skip Swagger, docs, auth, and preflight CORS
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod()) ||
+                path.startsWith("/swagger-ui") ||
+                path.startsWith("/v3/api-docs") ||
+                path.startsWith("/auth")) {
+            chain.doFilter(request, response);
+            return;
+        }
 
         final String authHeader = request.getHeader("Authorization");
 
@@ -44,13 +58,16 @@ public class JwtFilter extends OncePerRequestFilter {
                             List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
                     );
 
-                    UsernamePasswordAuthenticationToken authToken =
-                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    if (jwtUtil.validateToken(token, userDetails)) {
+                        UsernamePasswordAuthenticationToken authToken =
+                                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                        SecurityContextHolder.getContext().setAuthentication(authToken);
+                    }
                 }
             }
         }
+
         chain.doFilter(request, response);
     }
 }
