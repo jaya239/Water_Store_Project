@@ -19,6 +19,8 @@ public class EmailService {
 
     public void sendOtpEmail(String to, String otp) {
         try {
+            System.out.println("➡️ Attempting to send email to: " + to);
+            System.out.println("➡️ OTP content: " + otp);
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
             helper.setTo(to);
@@ -26,8 +28,11 @@ public class EmailService {
             helper.setSubject("Verify your Water Store account");
             helper.setText("Your OTP is: " + otp + "\n\nThis OTP will expire in 10 minutes.");
             mailSender.send(message);
+            System.out.println("✅ Email sent successfully!");
         } catch (MessagingException e) {
-            throw new RuntimeException("Failed to send OTP email", e);
+            System.out.println("❌ Email send failed:");
+            e.printStackTrace();
+
         }
     }
 }

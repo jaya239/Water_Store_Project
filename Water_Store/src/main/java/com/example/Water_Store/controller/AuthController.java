@@ -34,6 +34,7 @@ public class AuthController {
         }
 
         String otp = String.valueOf(new Random().nextInt(900000) + 100000);
+        System.out.println("✅ OTP for " + req.getEmail() + " is: " + otp);
 
         User user = User.builder()
                 .email(req.getEmail())
@@ -49,6 +50,8 @@ public class AuthController {
         userRepository.save(user);
 
         emailService.sendOtpEmail(user.getEmail(), otp);
+        System.out.println("➡️ Calling sendOtpEmail() with: " + otp);
+
 
         return ResponseEntity.ok("Registered successfully. Check email for OTP.");
     }
